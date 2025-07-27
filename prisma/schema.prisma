@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @default(MEMBER)
+  phone         String?
+  address       String?
+  city          String?
+  country       String    @default("Germany")
+  birthDate     DateTime
+  driversLicenseNumber String @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  reservations  Reservation[]
+  payments      Payment[]
+}
+
+model Vehicle {
+  id            String    @id @default(cuid())
+  name          String
+  type          String
+  category      VehicleCategory @default(ECONOMY)
+  description   String
+  available     Boolean   @default(true)
+  imageUrl      String?
+  pricePerDay   Float     @default(50.0)
+  location      String    @default("Main Location")
+  features      String[]  @default([])
+  fuelType      String    @default("Gasoline")
+  transmission  String    @default("Manual")
+  seats         Int       @default(5)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  reservations  Reservation[]
+}
+
+model Reservation {
+  id              String    @id @default(cuid())
+  startDate       DateTime
+  endDate         DateTime
+  startTime       String    @default("09:00")
+  endTime         String    @default("18:00")
+  pickupLocation  String
+  returnLocation  String
+  status          ReservationStatus @default(PENDING)
+  tariff          TariffType @default(BASIC)
+  totalPrice      Float     @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  userId          String
+  vehicleId       String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle         Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  payment         Payment?
+}
+
+model Payment {
+  id              String    @id @default(cuid())
+  amount          Float
+  currency        String    @default("EUR")
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(PENDING)
+  transactionId   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  userId          String
+  reservationId   String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reservation     Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+}
+
+model Location {
+  id          String    @id @default(cuid())
+  name        String
+  address     String
+  city        String
+  country     String
+  coordinates String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum Role {
+  GUEST
+  MEMBER
+  EMPLOYEE
+  ADMIN
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum VehicleCategory {
+  ECONOMY
+  COMPACT
+  INTERMEDIATE
+  STANDARD
+  FULLSIZE
+  PREMIUM
+  LUXURY
+  SUV
+  VAN
+  TRUCK
+  CONVERTIBLE
+  SPORTS
+}
+
+enum TariffType {
+  BASIC
+  DISCOUNTED
+  EXCLUSIVE
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  PAYPAL
+  BANK_TRANSFER
+  BANK_DRAFT
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}

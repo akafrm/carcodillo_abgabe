@@ -1,0 +1,25 @@
+
+npm run dev in einem terminal und dann die tests ausführen in einem anderen terminal
+
+Docker Desktop muss laufen
+ggf. vorher builden
+docker-compose up -d --build
+
+copy .env.test .env
+
+npm install
+
+docker-compose exec app npx prisma db push
+
+npx prisma db push --force-reset
+
+npm run dev
+
+npm run test:all                                        
+npm run test:unit                                  
+npm run test:db                                        
+npm run test:api                                         
+npx vitest lib/__tests__/performance.test.ts --run       
+npx vitest lib/__tests__/auth-integration.test.ts --run  
+docker-compose down                                     
+
